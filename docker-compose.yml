@@ -20,17 +20,8 @@ services:
       - ./import:/opt/app/import
     ports:
       - 4000:4000
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.port=4000'
-      - "traefik.http.middlewares.redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.auth.basicauth.usersfile=/auth/.htpasswd"
-      - "traefik.http.routers.teslamate-insecure.rule=Host(`${FQDN_TM}`)"
-      - "traefik.http.routers.teslamate-insecure.middlewares=redirect"
-      - "traefik.http.routers.teslamate.rule=Host(`${FQDN_TM}`)"
-      - "traefik.http.routers.teslamate.middlewares=auth"
-      - "traefik.http.routers.teslamate.entrypoints=websecure"
-      - "traefik.http.routers.teslamate.tls.certresolver=tmhttpchallenge"
+    cap_drop:
+      - all
 
   database:
     image: postgres:14
@@ -63,15 +54,6 @@ services:
       - teslamate-grafana-data:/var/lib/grafana
     ports:
       - 3000:3000
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.port=3000'
-      - "traefik.http.middlewares.redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.grafana-insecure.rule=Host(`${FQDN_GRAFANA}`)"
-      - "traefik.http.routers.grafana-insecure.middlewares=redirect"
-      - "traefik.http.routers.grafana.rule=Host(`${FQDN_GRAFANA}`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls.certresolver=tmhttpchallenge"
 
   mosquitto:
     image: eclipse-mosquitto:2
@@ -82,27 +64,6 @@ services:
     volumes:
       - mosquitto-conf:/mosquitto/config
       - mosquitto-data:/mosquitto/data
-
-  proxy:
-    image: traefik:v2.1
-    restart: always
-    command:
-      - "--global.sendAnonymousUsage=false"
-      - "--providers.docker"
-      - "--providers.docker.exposedByDefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.tmhttpchallenge.acme.httpchallenge=true"
-      - "--certificatesresolvers.tmhttpchallenge.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.tmhttpchallenge.acme.email=${LETSENCRYPT_EMAIL}"
-      - "--certificatesresolvers.tmhttpchallenge.acme.storage=/etc/acme/acme.json"
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - ./.htpasswd:/auth/.htpasswd
-      - ./acme/:/etc/acme/
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 volumes:
     teslamate-db:
