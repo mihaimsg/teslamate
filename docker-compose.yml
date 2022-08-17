@@ -7,6 +7,7 @@ services:
     depends_on:
       - database
     environment:
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DATABASE_USER=${TM_DB_USER}
       - DATABASE_PASS=${TM_DB_PASS}
       - DATABASE_NAME=${TM_DB_NAME}
@@ -17,6 +18,8 @@ services:
       - TZ=${TM_TZ}
     volumes:
       - ./import:/opt/app/import
+    ports:
+      - 4000:4000
     labels:
       - 'traefik.enable=true'
       - 'traefik.port=4000'
@@ -30,13 +33,15 @@ services:
       - "traefik.http.routers.teslamate.tls.certresolver=tmhttpchallenge"
 
   database:
-    image: postgres:12
+    image: postgres:14
     restart: always
     environment:
       - POSTGRES_USER=${TM_DB_USER}
       - POSTGRES_PASSWORD=${TM_DB_PASS}
       - POSTGRES_DB=${TM_DB_NAME}
       - POSTGRES_HOST=${TM_DB_HOST}
+    ports:
+    - "5432:5432"
     volumes:
       - teslamate-db:/var/lib/postgresql/data
 
@@ -56,6 +61,8 @@ services:
       - GF_SERVER_ROOT_URL=https://${FQDN_GRAFANA}
     volumes:
       - teslamate-grafana-data:/var/lib/grafana
+    ports:
+      - 3000:3000
     labels:
       - 'traefik.enable=true'
       - 'traefik.port=3000'
@@ -67,8 +74,9 @@ services:
       - "traefik.http.routers.grafana.tls.certresolver=tmhttpchallenge"
 
   mosquitto:
-    image: eclipse-mosquitto:1.6
+    image: eclipse-mosquitto:2
     restart: always
+    command: mosquitto -c /mosquitto-no-auth.conf
     ports:
       - 127.0.0.1:1883:1883
     volumes:
