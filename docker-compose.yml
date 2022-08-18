@@ -23,7 +23,7 @@ services:
       - "traefik.port=4000"
       - "traefik.http.middlewares.redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.teslamate-auth.basicauth.realm=teslamate"
-      - "traefik.http.middlewares.teslamate-auth.basicauth.usersfile=/.htpasswd"
+      - "traefik.http.middlewares.teslamate-auth.basicauth.usersfile=/auth/.htpasswd"
       - "traefik.http.routers.teslamate-insecure.rule=Host(`${FQDN_TM}`)"
       - "traefik.http.routers.teslamate-insecure.middlewares=redirect"
       - "traefik.http.routers.teslamate-ws.rule=Host(`${FQDN_TM}`) && Path(`/live/websocket`)"
@@ -101,7 +101,7 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./.htpasswd:/.htpasswd
+      - ./.htpasswd:/auth/.htpasswd
       - ./acme/:/etc/acme/
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
