@@ -16,6 +16,8 @@ services:
       - VIRTUAL_HOST=${FQDN_TM}
       - CHECK_ORIGIN=true
       - TZ=${TM_TZ}
+    ports:
+      - 4000:4000
     volumes:
       - ./import:/opt/app/import
     cap_drop:
